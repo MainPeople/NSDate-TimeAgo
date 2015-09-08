@@ -123,3 +123,7 @@
 
 /* No comment provided by engineer. */
 "This year" = "В этом году";
+
+/* Mainpeople */
+"Today at" = "Сегодня в";
+"Yesterday at" = "Вчера в";
