@@ -64,9 +64,9 @@ NSLocalizedStringFromTableInBundle(key, @"NSDateTimeAgo", [NSBundle bundleWithPa
     NSDateComponents *components = [calendar components:NSCalendarUnitYear fromDate:self toDate:now options:0];
 
     if (deltaMinutes < 24 * 60) {
-        return [NSString stringWithFormat:@"Today at %@", [self.timeFormatter stringFromDate:self]];
+        return [NSString stringWithFormat:@"%@ %@", NSLocalizedStringFromTableInBundle(@"Today at"), [self.timeFormatter stringFromDate:self]];
     } else if (deltaMinutes < 2 * 24 * 60) {
-        return [NSString stringWithFormat:@"Yesterday at %@", [self.timeFormatter stringFromDate:self]];
+        return [NSString stringWithFormat:@"%@ %@", NSLocalizedStringFromTableInBundle(@"Yesterday at"), [self.timeFormatter stringFromDate:self]];
     } else if (components.year < 1) {
         return [self.dateFormatter stringFromDate:self];
     } else {
