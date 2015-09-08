@@ -1,7 +1,13 @@
 #import "NSDate+TimeAgo.h"
 
 @interface NSDate()
--(NSString *)getLocaleFormatUnderscoresWithValue:(double)value;
+
+@property (nonatomic, strong, readonly) NSDateFormatter *timeFormatter;
+@property (nonatomic, strong, readonly) NSDateFormatter *dateFormatter;
+@property (nonatomic, strong, readonly) NSDateFormatter *dateYearFormatter;
+
+- (NSString *)getLocaleFormatUnderscoresWithValue:(double)value;
+
 @end
 
 @interface DummyClass: NSObject
@@ -17,6 +23,56 @@
 #define NSDateTimeAgoLocalizedStrings(key) \
 NSLocalizedStringFromTableInBundle(key, @"NSDateTimeAgo", [NSBundle bundleWithPath:[[[NSBundle bundleForClass:[DummyClass class]] resourcePath] stringByAppendingPathComponent:@"NSDateTimeAgo.bundle"]], nil)
 #endif
+
+- (NSDateFormatter *)timeFormatter {
+    static NSDateFormatter *_instance = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        _instance = [[NSDateFormatter alloc] init];
+        [_instance setDateFormat:@"HH:mm"];
+    });
+
+    return _instance;
+}
+
+- (NSDateFormatter *)dateFormatter {
+    static NSDateFormatter *_instance = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        _instance = [[NSDateFormatter alloc] init];
+        [_instance setDateFormat:@"dd MMMM"];
+    });
+
+    return _instance;
+}
+
+- (NSDateFormatter *)dateYearFormatter {
+    static NSDateFormatter *_instance = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        _instance = [[NSDateFormatter alloc] init];
+        [_instance setDateFormat:@"dd MMMM YYYY"];
+    });
+
+    return _instance;
+}
+- (NSString *)mp_timeAgo {
+    NSDate * now = [NSDate date];
+    double deltaSeconds = fabs([self timeIntervalSinceDate:now]);
+    double deltaMinutes = deltaSeconds / 60.0f;
+    NSCalendar *calendar = [NSCalendar currentCalendar];
+    NSDateComponents *components = [calendar components:NSCalendarUnitYear fromDate:self toDate:now options:0];
+
+    if (deltaMinutes < 24 * 60) {
+        return [NSString stringWithFormat:@"Today at %@", [self.timeFormatter stringFromDate:self]];
+    } else if (deltaMinutes < 2 * 24 * 60) {
+        return [NSString stringWithFormat:@"Yesterday at %@", [self.timeFormatter stringFromDate:self]];
+    } else if (components.year < 1) {
+        return [self.dateFormatter stringFromDate:self];
+    } else {
+        return [self.dateYearFormatter stringFromDate:self];
+    }
+}
 
 // shows 1 or two letter abbreviation for units.
 // does not include 'ago' text ... just {value}{unit-abbreviation}
