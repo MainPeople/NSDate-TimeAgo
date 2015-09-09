@@ -40,7 +40,7 @@ NSLocalizedStringFromTableInBundle(key, @"NSDateTimeAgo", [NSBundle bundleWithPa
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         _instance = [[NSDateFormatter alloc] init];
-        [_instance setDateFormat:@"dd MMMM"];
+        [_instance setDateFormat:@"d MMMM"];
     });
 
     return _instance;
@@ -51,26 +51,29 @@ NSLocalizedStringFromTableInBundle(key, @"NSDateTimeAgo", [NSBundle bundleWithPa
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         _instance = [[NSDateFormatter alloc] init];
-        [_instance setDateFormat:@"dd MMMM YYYY"];
+        [_instance setDateFormat:@"d MMMM YYYY"];
     });
 
     return _instance;
 }
-- (NSString *)mp_timeAgo {
-    NSDate * now = [NSDate date];
-    double deltaSeconds = fabs([self timeIntervalSinceDate:now]);
-    double deltaMinutes = deltaSeconds / 60.0f;
-    NSCalendar *calendar = [NSCalendar currentCalendar];
-    NSDateComponents *components = [calendar components:NSCalendarUnitYear fromDate:self toDate:now options:0];
 
-    if (deltaMinutes < 24 * 60) {
-        return [NSString stringWithFormat:@"%@ %@", NSDateTimeAgoLocalizedStrings(@"Today at"), [self.timeFormatter stringFromDate:self]];
-    } else if (deltaMinutes < 2 * 24 * 60) {
-        return [NSString stringWithFormat:@"%@ %@", NSDateTimeAgoLocalizedStrings(@"Yesterday at"), [self.timeFormatter stringFromDate:self]];
-    } else if (components.year < 1) {
-        return [self.dateFormatter stringFromDate:self];
-    } else {
+- (NSString *)mp_timeAgo {
+    NSDate *now = [NSDate date];
+    NSCalendar *calendar = [NSCalendar currentCalendar];
+    NSCalendarUnit components = NSCalendarUnitDay | NSCalendarUnitMonth | NSCalendarUnitYear;
+
+    NSDateComponents *postComponents = [calendar components:components fromDate:self];
+    NSDateComponents *nowComponents = [calendar components:components fromDate:now];
+
+
+    if (postComponents.year < nowComponents.year) {
         return [self.dateYearFormatter stringFromDate:self];
+    } else if (postComponents.day < nowComponents.day - 1 || postComponents.month < nowComponents.month) {
+        return [self.dateFormatter stringFromDate:self];
+    } else if (postComponents.day < nowComponents.day) {
+        return [NSString stringWithFormat:@"%@ %@", NSDateTimeAgoLocalizedStrings(@"Yesterday at"), [self.timeFormatter stringFromDate:self]];
+    } else {
+        return [NSString stringWithFormat:@"%@ %@", NSDateTimeAgoLocalizedStrings(@"Today at"), [self.timeFormatter stringFromDate:self]];
     }
 }
 
